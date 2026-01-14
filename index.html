@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bio.Link - One Link for Everything</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/style.css">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+    <div id="app">
+        <!-- Navigation -->
+        <nav id="navbar" class="glass-nav">
+            <div class="container nav-container">
+                <a href="/" class="logo" data-link>bio.link</a>
+                <div class="nav-links">
+                    <button onclick="toggleDarkMode()" class="btn btn-ghost btn-sm" id="theme-toggle"
+                        aria-label="Toggle Dark Mode">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    <div id="auth-buttons">
+                        <button onclick="router.navigate('/login')" class="btn btn-ghost">Log in</button>
+                        <button onclick="router.navigate('/signup')" class="btn btn-primary">Sign up free</button>
+                    </div>
+                    <div id="user-menu" class="hidden">
+                        <span id="nav-username"></span>
+                        <button onclick="sb.auth.signOut()" class="btn btn-sm btn-outline">Log out</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main id="main-content">
+
+            <!-- Landing Page -->
+            <section id="landing-view" class="view active">
+                <div class="hero">
+                    <div class="hero-content">
+                        <h1>One link for all your <span class="gradient-text">connections</span>.</h1>
+                        <p>Create a beautiful bio link in minutes. fast, customizable, and 100% free.</p>
+                        <div class="hero-cta">
+                            <div class="input-group domain-claim">
+                                <span class="prefix">bio.link/</span>
+                                <input type="text" id="claim-username" placeholder="yourname">
+                                <button onclick="handleClaimUsername()" class="btn btn-primary">Claim my link</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-preview">
+                        <div class="phone-mockup floating">
+                            <div class="screen">
+                                <div class="mock-profile">
+                                    <div class="mock-avatar"></div>
+                                    <div class="mock-line w-50"></div>
+                                    <div class="mock-line w-30"></div>
+                                    <div class="mock-buttons">
+                                        <div class="mock-btn"></div>
+                                        <div class="mock-btn"></div>
+                                        <div class="mock-btn"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Auth View -->
+            <section id="auth-view" class="view hidden">
+                <div class="auth-container glass-card">
+                    <h2 id="auth-title">Welcome back</h2>
+                    <p id="auth-subtitle">Enter your email to continue</p>
+
+                    <form id="auth-form" onsubmit="handleAuth(event)">
+                        <div class="form-group">
+                            <label>Email address</label>
+                            <input type="email" id="email" required placeholder="hello@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="password" required placeholder="••••••••" minlength="6">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full" id="auth-submit">Continue</button>
+                    </form>
+
+                    <form id="otp-form" class="hidden" onsubmit="handleVerify(event)">
+                        <div class="form-group">
+                            <label>Enter code sent to email</label>
+                            <input type="text" id="otp" required placeholder="123456">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full" id="otp-submit">Verify Code</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Onboarding View -->
+            <section id="onboarding-view" class="view hidden">
+                <div class="onboarding-container glass-card">
+                    <h2>Claim your handle</h2>
+                    <form id="onboarding-form" onsubmit="handleOnboarding(event)">
+                        <div class="form-group">
+                            <label>Username</label>
+                            <div class="input-prefix">
+                                <span>bio.link/</span>
+                                <input type="text" id="setup-username" required pattern="[a-zA-Z0-9_-]+"
+                                    title="Letters, numbers, underscores and hyphens only">
+                            </div>
+                            <small id="username-check-msg"></small>
+                        </div>
+                        <div class="form-group">
+                            <label>Display Name</label>
+                            <input type="text" id="setup-displayname" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Dashboard View -->
+            <section id="dashboard-view" class="view hidden">
+                <div class="dashboard-layout">
+                    <aside class="sidebar">
+                        <nav class="sidebar-nav">
+                            <button class="nav-item active" onclick="switchTab('links')"><i
+                                    class="fa-solid fa-link"></i> Links</button>
+                            <button class="nav-item" onclick="switchTab('appearance')"><i
+                                    class="fa-solid fa-palette"></i> Appearance</button>
+                            <button class="nav-item" onclick="switchTab('settings')"><i class="fa-solid fa-gear"></i>
+                                Settings</button>
+                        </nav>
+                        <div class="sidebar-footer">
+                            <a id="my-link-preview" href="#" target="_blank" class="link-preview-btn">
+                                <i class="fa-solid fa-eye"></i> View my page
+                            </a>
+                        </div>
+                    </aside>
+
+                    <div class="main-editor">
+                        <!-- Links Tab -->
+                        <div id="tab-links" class="tab-content active">
+                            <div class="header-action">
+                                <h2>Links</h2>
+                                <button onclick="addNewLink()" class="btn btn-primary"><i class="fa-solid fa-plus"></i>
+                                    Add Link</button>
+                            </div>
+                            <div id="links-list" class="links-container">
+                                <!-- Dynamic Links -->
+                            </div>
+                        </div>
+
+                        <!-- Appearance Tab -->
+                        <div id="tab-appearance" class="tab-content hidden">
+                            <h2>Profile</h2>
+                            <div class="profile-editor glass-card">
+                                <div class="avatar-upload">
+                                    <img id="avatar-preview" src="https://via.placeholder.com/100" alt="Avatar">
+                                    <div class="avatar-actions">
+                                        <button onclick="triggerImageUpload()" class="btn btn-secondary">Pick an
+                                            image</button>
+                                        <input type="file" id="file-upload" hidden accept="image/*"
+                                            onchange="handleImageUpload(event)">
+                                        <small>Images are processed securely</small>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Profile Title</label>
+                                    <input type="text" id="edit-title" oninput="updateProfileMeta()">
+                                </div>
+                                <div class="form-group">
+                                    <label>Bio</label>
+                                    <textarea id="edit-bio" rows="3" oninput="updateProfileMeta()"></textarea>
+                                </div>
+
+                                <div style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                                    <h3 style="font-size: 1rem; margin-bottom: 1rem;">Social Icons</h3>
+                                    <div class="form-group">
+                                        <label><i class="fa-regular fa-envelope"></i> Email</label>
+                                        <input type="email" id="social-email" placeholder="mailto:you@example.com"
+                                            onchange="updateProfileMeta()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label><i class="fa-brands fa-instagram"></i> Instagram</label>
+                                        <input type="text" id="social-instagram" placeholder="https://instagram.com/..."
+                                            onchange="updateProfileMeta()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label><i class="fa-brands fa-youtube"></i> YouTube</label>
+                                        <input type="text" id="social-youtube" placeholder="https://youtube.com/..."
+                                            onchange="updateProfileMeta()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label><i class="fa-brands fa-telegram"></i> Telegram</label>
+                                        <input type="text" id="social-telegram" placeholder="https://t.me/..."
+                                            onchange="updateProfileMeta()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label><i class="fa-brands fa-x-twitter"></i> X / Twitter</label>
+                                        <input type="text" id="social-twitter" placeholder="https://x.com/..."
+                                            onchange="updateProfileMeta()">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="glass-card" style="padding: 1.5rem; margin-top: 1.5rem;">
+                                <h3>Custom Button Colors</h3>
+                                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Override
+                                    theme colors with your own.</p>
+                                <div style="display: flex; gap: 1.5rem;">
+                                    <div class="form-group" style="flex: 1;">
+                                        <label>Background</label>
+                                        <div
+                                            style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+                                            <input type="color" id="btn-bg-picker" onchange="updateCustomColors()"
+                                                style="width: 40px; height: 40px; padding: 0; border: none; border-radius: 8px; cursor: pointer;">
+                                            <button onclick="resetCustomColors('bg')" class="btn btn-sm btn-ghost"
+                                                style="font-size: 0.8rem;">Reset</button>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="flex: 1;">
+                                        <label>Text Color</label>
+                                        <div
+                                            style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+                                            <input type="color" id="btn-text-picker" onchange="updateCustomColors()"
+                                                style="width: 40px; height: 40px; padding: 0; border: none; border-radius: 8px; cursor: pointer;">
+                                            <button onclick="resetCustomColors('text')" class="btn btn-sm btn-ghost"
+                                                style="font-size: 0.8rem;">Reset</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h2>Themes</h2>
+                            <div class="themes-grid" id="themes-list">
+                                <!-- Dynamic Themes -->
+                                <div class="theme-card selected" onclick="setTheme('default')">
+                                    <div class="theme-preview" style="background: #fff; border: 1px solid #e2e8f0;">
+                                    </div>
+                                    <span>Minimal</span>
+                                </div>
+                                <div class="theme-card" onclick="setTheme('dark')">
+                                    <div class="theme-preview dark" style="background: #111;"></div>
+                                    <span>Midnight</span>
+                                </div>
+                                <div class="theme-card" onclick="setTheme('gradient-blue')">
+                                    <div class="theme-preview"
+                                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                                    <span>Electric</span>
+                                </div>
+                                <div class="theme-card" onclick="setTheme('forest')">
+                                    <div class="theme-preview" style="background: #1a2f23;"></div>
+                                    <span>Forest</span>
+                                </div>
+                                <div class="theme-card" onclick="setTheme('sunset')">
+                                    <div class="theme-preview"
+                                        style="background: linear-gradient(to top, #cfd9df 0%, #e2ebf0 100%); background-image: linear-gradient(120deg, #f6d365 0%, #fda085 100%);">
+                                    </div>
+                                    <span>Sunset</span>
+                                </div>
+                                <div class="theme-card" onclick="setTheme('ocean')">
+                                    <div class="theme-preview"
+                                        style="background: linear-gradient(to top, #30cfd0 0%, #330867 100%);"></div>
+                                    <span>Ocean</span>
+                                </div>
+                                <div class="theme-card" onclick="setTheme('aurora')">
+                                    <div class="theme-preview"
+                                        style="background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab); background-size: 150% 150%;">
+                                    </div>
+                                    <span>Aurora</span>
+                                </div>
+                                <div class="theme-card" onclick="setTheme('galaxy')">
+                                    <div class="theme-preview"
+                                        style="background: linear-gradient(to right, #243949 0%, #517fa4 100%);"></div>
+                                    <span>Galaxy</span>
+                                </div>
+                                <div class="theme-card" onclick="setTheme('luxury')">
+                                    <div class="theme-preview"
+                                        style="background: linear-gradient(to bottom, #141e30, #243b55); border: 2px solid #ffd700;">
+                                    </div>
+                                    <span>Luxury</span>
+                                </div>
+                                <div class="theme-card" onclick="setTheme('motion')">
+                                    <div class="theme-preview"
+                                        style="background: #000; position: relative; overflow: hidden;">
+                                        <div
+                                            style="position: absolute; top:0; left:0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
+                                            <i class="fa-solid fa-play"></i>
+                                        </div>
+                                    </div>
+                                    <span>Motion</span>
+                                </div>
+                                <div class="theme-card" onclick="setTheme('motion-2')">
+                                    <div class="theme-preview"
+                                        style="background: #111; position: relative; overflow: hidden; border: 1px solid #333;">
+                                        <div
+                                            style="position: absolute; top:0; left:0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
+                                            <i class="fa-solid fa-film"></i>
+                                        </div>
+                                    </div>
+                                    <span>Motion II</span>
+                                </div>
+                                <div class="theme-card" onclick="setTheme('motion-3')">
+                                    <div class="theme-preview"
+                                        style="background: #222; position: relative; overflow: hidden; border: 1px solid #444;">
+                                        <div
+                                            style="position: absolute; top:0; left:0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
+                                            <i class="fa-solid fa-video"></i>
+                                        </div>
+                                    </div>
+                                    <span>Motion III</span>
+                                </div>
+                                <div class="theme-card" onclick="setTheme('motion-4')">
+                                    <div class="theme-preview"
+                                        style="background: #333; position: relative; overflow: hidden; border: 1px solid #555;">
+                                        <div
+                                            style="position: absolute; top:0; left:0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
+                                            <i class="fa-solid fa-star"></i>
+                                        </div>
+                                    </div>
+                                    <span>Motion IV</span>
+                                </div>
+                                <div class="theme-card" onclick="setTheme('grid')">
+                                    <div class="theme-preview"
+                                        style="background: #f8fafc; border: 1px solid #e2e8f0; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 10px;">
+                                        <div style="background: #e2e8f0; border-radius: 4px; height: 100%;"></div>
+                                        <div style="background: #e2e8f0; border-radius: 4px; height: 100%;"></div>
+                                        <div style="background: #e2e8f0; border-radius: 4px; height: 100%;"></div>
+                                        <div style="background: #e2e8f0; border-radius: 4px; height: 100%;"></div>
+                                    </div>
+                                    <span>Showcase</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Settings Tab -->
+                        <div id="tab-settings" class="tab-content hidden">
+                            <h2>Settings</h2>
+                            <div class="glass-card" style="padding: 1.5rem;">
+                                <h3>Account Security</h3>
+                                <p style="margin-bottom: 1.5rem; color: var(--text-muted);">Manage your account details
+                                    and preferences.</p>
+
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" value="" disabled id="settings-email"
+                                        style="background: #f1f5f9;">
+                                </div>
+
+                                <button onclick="sb.auth.resetPasswordForEmail(state.user.email)"
+                                    class="btn btn-secondary" style="margin-right: 1rem;">Reset Password</button>
+                                <button onclick="alert('Delete account functionality requires admin setup')"
+                                    class="btn btn-ghost" style="color: #ef4444;">Delete Account</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="preview-pane">
+                        <div class="preview-phone">
+                            <iframe id="preview-iframe" src="about:blank"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Public Profile View (Rendered dynamically based on URL logic, or overlay) -->
+        <div id="public-profile-view" class="hidden">
+            <!-- Full screen profile view -->
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">Action successful</div>
+    </div>
+
+    <script src="/js/config.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+
+</html>
